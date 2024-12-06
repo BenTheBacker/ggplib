@@ -41,6 +41,7 @@ class GameMaster(object):
             log.info("GAMEMASTER: create a gamemaster for game %s" % self.game)
 
         self.matches = None
+        self.forced_moves = {}
 
     def create_match_id(self):
         return "a_%s_match_id_%d" % (self.game, random.randint(0, 100000))

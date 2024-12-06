@@ -69,6 +69,8 @@ class Match:
         self.sm = None
         self.game_depth = 0
 
+        self.forced_move = None 
+
     def fast_reset(self, match_id, player, role):
         assert self.player == player
         assert self.role == role
@@ -229,7 +231,7 @@ class Match:
     def do_play(self, move):
         enter_time = time.time()
         if self.verbose:
-            log.debug("do_play: %s" % (move,))
+            log.debug(f"do_play: {move}")
 
         if move is not None:
             self.apply_move(move)
@@ -237,7 +239,7 @@ class Match:
         current_state = self.get_current_state()
         if self.verbose:
             current_str = self.game_info.model.basestate_to_str(current_state)
-            log.info("Current state : '%s'" % current_str)
+            log.info(f"Current state : '{current_str}'")
         self.sm.update_bases(current_state)
         if self.sm.is_terminal():
             return "done"
@@ -246,31 +248,54 @@ class Match:
         if self.cushion_time > 0:
             end_time -= self.cushion_time
 
-        legal_choice = self.player.on_next_move(end_time)
+        if self.forced_move is not None:
+            # Use the forced move
+            legal_moves = [self.legal_to_gamemaster_move(ls.get_legal(ii)) 
+                           for ii in range(self.sm.get_legal_state(self.our_role_index).get_count())]
+            if self.forced_move not in legal_moves:
+                msg = f"Forced move {self.forced_move} is not in legal moves {legal_moves}"
+                log.critical(msg)
+                raise CriticalError(msg)
+            move_to_play = self.forced_move
+            if self.verbose:
+                log.info(f"Using forced move: {move_to_play}")
+            self.forced_move = None  # Clear after use
+        else:
+            # Get the move from the player
+            legal_choice = self.player.on_next_move(end_time)
+            move_to_play = self.legal_to_gamemaster_move(legal_choice)
 
-        # we have no idea what on_next_move() left the state machine.  So reverting it back to
-        # correct state here.
-        self.sm.update_bases(self.get_current_state())
+            # Validate the move
+            legal_moves = [self.legal_to_gamemaster_move(ls.get_legal(ii)) 
+                           for ii in range(self.sm.get_legal_state(self.our_role_index).get_count())]
+            if move_to_play not in legal_moves:
+                msg = f"Choice was {move_to_play} not in legal choices {legal_moves}"
+                log.critical(msg)
+                raise CriticalError(msg)
 
-        # get possible possible legal moves and check 'move' is a valid
+        # Set the joint_move accordingly
         ls = self.sm.get_legal_state(self.our_role_index)
-
-        # store last move (in our own mapping, *not* gamemaster)
-        self.last_played_move = self.sm.legal_to_move(self.our_role_index, legal_choice)
-
-        # check the move remaps and is a legal choice
-        move = self.legal_to_gamemaster_move(legal_choice)
-        legal_moves = [self.legal_to_gamemaster_move(ls.get_legal(ii)) for ii in range(ls.get_count())]
-        if move not in legal_moves:
-            msg = "Choice was %s not in legal choices %s" % (move, legal_moves)
-            log.critical(msg)
-            raise CriticalError(msg)
+        for idx in range(ls.get_count()):
+            if self.sm.legal_to_move(self.our_role_index, ls.get_legal(idx)) == move_to_play:
+                self.joint_move.set(self.our_role_index, ls.get_legal(idx))
+                break
 
         if self.verbose:
-            log.info("(%s) do_play '%s' sending move: %s" % (self.player.name,
-                                                             self.role,
-                                                             move))
-        return move
+            log.info(f"({self.player.name}) do_play '{self.role}' sending move: {move_to_play}")
+        return move_to_play
+    
+    def set_forced_move(self, move):
+        ''' Sets a forced move to be played by the player. '''
+        self.forced_move = move
+        if self.verbose:
+            log.info(f"Forced move set to: {move}")
+
+    def clear_forced_move(self):
+        ''' Clears any previously set forced move. '''
+        self.forced_move = None
+        if self.verbose:
+            log.info("Forced move cleared.")
+
 
     def do_stop(self):
         assert self.sm.is_terminal(), "should never be called unless game is finished"
