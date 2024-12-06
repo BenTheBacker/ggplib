@@ -130,16 +130,22 @@ class GameMaster(object):
 
         actions = []
         new_last_move = []
-        for role_index, (match, role) in enumerate(zip(self.matches,
-                                                       self.sm.get_roles())):
-
+        for role_index, (match, role) in enumerate(zip(self.matches, self.sm.get_roles())):
             if self.verbose:
                 log.verbose("===============================================================")
-                log.verbose("do_play(%s) for %s / %s" % (last_move, role, match.player.get_name()))
+                log.verbose(f"do_play({last_move}) for {role} / {match.player.get_name()}")
+
+            # Check if a forced move is set for this role
+            if role in self.forced_moves:
+                forced_move = self.forced_moves[role]
+                match.set_forced_move(forced_move)
+                if self.verbose:
+                    log.verbose(f"GameMaster: Forcing move '{forced_move}' for role '{role}'")
+
             move = match.do_play(last_move)
             new_last_move.append(move)
 
-            # check the move is in the legals
+            # Check the move is in the legals
             ls = self.sm.get_legal_state(role_index)
             choices = [ls.get_legal(ii) for ii in range(ls.get_count())]
 
@@ -153,43 +159,28 @@ class GameMaster(object):
 
         assert len(actions) == len(self.matches)
         if self.verbose:
-            log.verbose("playing %s" % (actions,))
+            log.verbose(f"playing {actions}")
 
         self.sm.next_state(self.joint_move, self.next_basestate)
         self.sm.update_bases(self.next_basestate)
 
         return tuple(new_last_move)
 
-    def play_forced_move(self, forcedMove, last_move=None):
-        assert not self.finished()
-
-        actions = []
-        new_last_move = []
-        for role_index, (match, role) in enumerate(zip(self.matches,
-                                                       self.sm.get_roles())):
-            move = forcedMove
-            new_last_move.append(move)
-
-            # check the move is in the legals
-            ls = self.sm.get_legal_state(role_index)
-            choices = [ls.get_legal(ii) for ii in range(ls.get_count())]
-
-            for choice in choices:
-                choice_move = self.sm.legal_to_move(role_index, choice)
-
-                if choice_move == move:
-                    self.joint_move.set(role_index, choice)
-                    actions.append(move)
-                    break
-
-        assert len(actions) == len(self.matches)
+    def set_forced_move(self, role, move):
+        ''' Sets a forced move for a specific role. '''
+        if role not in self.players_map:
+            raise ValueError(f"Role {role} does not exist.")
+        self.forced_moves[role] = move
         if self.verbose:
-            log.verbose("playing %s" % (actions,))
+            log.info(f"GameMaster: Forced move for role '{role}' set to '{move}'")
 
-        self.sm.next_state(self.joint_move, self.next_basestate)
-        self.sm.update_bases(self.next_basestate)
+    def clear_forced_move(self, role):
+        ''' Clears a forced move for a specific role. '''
+        if role in self.forced_moves:
+            del self.forced_moves[role]
+            if self.verbose:
+                log.info(f"GameMaster: Forced move for role '{role}' cleared")
 
-        return tuple(new_last_move)
 
     def finished(self):
         return self.sm.is_terminal()
