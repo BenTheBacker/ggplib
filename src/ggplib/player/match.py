@@ -231,7 +231,7 @@ class Match:
     def do_play(self, move):
         enter_time = time.time()
         if self.verbose:
-            log.debug(f"do_play: {move}")
+            log.debug("do_play: %s" % move)
 
         if move is not None:
             self.apply_move(move)
@@ -239,7 +239,7 @@ class Match:
         current_state = self.get_current_state()
         if self.verbose:
             current_str = self.game_info.model.basestate_to_str(current_state)
-            log.info(f"Current state : '{current_str}'")
+            log.info("Current state : '%s'" % current_str)
         self.sm.update_bases(current_state)
         if self.sm.is_terminal():
             return "done"
@@ -251,14 +251,14 @@ class Match:
         if self.forced_move is not None:
             # Use the forced move
             legal_moves = [self.legal_to_gamemaster_move(ls.get_legal(ii)) 
-                           for ii in range(self.sm.get_legal_state(self.our_role_index).get_count())]
+                        for ii in range(self.sm.get_legal_state(self.our_role_index).get_count())]
             if self.forced_move not in legal_moves:
-                msg = f"Forced move {self.forced_move} is not in legal moves {legal_moves}"
+                msg = "Forced move %s is not in legal moves %s" % (self.forced_move, legal_moves)
                 log.critical(msg)
                 raise CriticalError(msg)
             move_to_play = self.forced_move
             if self.verbose:
-                log.info(f"Using forced move: {move_to_play}")
+                log.info("Using forced move: %s" % move_to_play)
             self.forced_move = None  # Clear after use
         else:
             # Get the move from the player
@@ -267,9 +267,9 @@ class Match:
 
             # Validate the move
             legal_moves = [self.legal_to_gamemaster_move(ls.get_legal(ii)) 
-                           for ii in range(self.sm.get_legal_state(self.our_role_index).get_count())]
+                        for ii in range(self.sm.get_legal_state(self.our_role_index).get_count())]
             if move_to_play not in legal_moves:
-                msg = f"Choice was {move_to_play} not in legal choices {legal_moves}"
+                msg = "Choice was %s not in legal choices %s" % (move_to_play, legal_moves)
                 log.critical(msg)
                 raise CriticalError(msg)
 
@@ -281,20 +281,21 @@ class Match:
                 break
 
         if self.verbose:
-            log.info(f"({self.player.name}) do_play '{self.role}' sending move: {move_to_play}")
+            log.info("(%s) do_play '%s' sending move: %s" % (self.player.name, self.role, move_to_play))
         return move_to_play
-    
+
     def set_forced_move(self, move):
         ''' Sets a forced move to be played by the player. '''
         self.forced_move = move
         if self.verbose:
-            log.info(f"Forced move set to: {move}")
+            log.info("Forced move set to: %s" % move)
 
     def clear_forced_move(self):
         ''' Clears any previously set forced move. '''
         self.forced_move = None
         if self.verbose:
             log.info("Forced move cleared.")
+
 
 
     def do_stop(self):

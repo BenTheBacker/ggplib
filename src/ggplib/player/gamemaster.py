@@ -134,14 +134,14 @@ class GameMaster(object):
         for role_index, (match, role) in enumerate(zip(self.matches, self.sm.get_roles())):
             if self.verbose:
                 log.verbose("===============================================================")
-                log.verbose(f"do_play({last_move}) for {role} / {match.player.get_name()}")
+                log.verbose("do_play("+last_move+") for "+role +" / " +match.player.get_name())
 
             # Check if a forced move is set for this role
             if role in self.forced_moves:
                 forced_move = self.forced_moves[role]
                 match.set_forced_move(forced_move)
                 if self.verbose:
-                    log.verbose(f"GameMaster: Forcing move '{forced_move}' for role '{role}'")
+                    log.verbose("GameMaster: Forcing move '"+ forced_move + "' for role '" +role +"'")
 
             move = match.do_play(last_move)
             new_last_move.append(move)
@@ -160,7 +160,7 @@ class GameMaster(object):
 
         assert len(actions) == len(self.matches)
         if self.verbose:
-            log.verbose(f"playing {actions}")
+            log.verbose("playing " + actions)
 
         self.sm.next_state(self.joint_move, self.next_basestate)
         self.sm.update_bases(self.next_basestate)
@@ -173,14 +173,14 @@ class GameMaster(object):
             raise ValueError(f"Role {role} does not exist.")
         self.forced_moves[role] = move
         if self.verbose:
-            log.info(f"GameMaster: Forced move for role '{role}' set to '{move}'")
+            log.info("GameMaster: Forced move for role '" + role + "' set to '" + move +"'")
 
     def clear_forced_move(self, role):
         ''' Clears a forced move for a specific role. '''
         if role in self.forced_moves:
             del self.forced_moves[role]
             if self.verbose:
-                log.info(f"GameMaster: Forced move for role '{role}' cleared")
+                log.info("GameMaster: Forced move for role '" + role + "' cleared")
 
 
     def finished(self):
