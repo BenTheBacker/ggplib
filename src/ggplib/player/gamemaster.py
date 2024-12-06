@@ -170,7 +170,7 @@ class GameMaster(object):
     def set_forced_move(self, role, move):
         ''' Sets a forced move for a specific role. '''
         if role not in self.players_map:
-            raise ValueError(f"Role {role} does not exist.")
+            raise ValueError("Role "+role+" does not exist.")
         self.forced_moves[role] = move
         if self.verbose:
             log.info("GameMaster: Forced move for role '" + role + "' set to '" + move +"'")
