@@ -160,6 +160,37 @@ class GameMaster(object):
 
         return tuple(new_last_move)
 
+    def play_forced_move(self, forcedMove, last_move=None):
+        assert not self.finished()
+
+        actions = []
+        new_last_move = []
+        for role_index, (match, role) in enumerate(zip(self.matches,
+                                                       self.sm.get_roles())):
+            move = forcedMove
+            new_last_move.append(move)
+
+            # check the move is in the legals
+            ls = self.sm.get_legal_state(role_index)
+            choices = [ls.get_legal(ii) for ii in range(ls.get_count())]
+
+            for choice in choices:
+                choice_move = self.sm.legal_to_move(role_index, choice)
+
+                if choice_move == move:
+                    self.joint_move.set(role_index, choice)
+                    actions.append(move)
+                    break
+
+        assert len(actions) == len(self.matches)
+        if self.verbose:
+            log.verbose("playing %s" % (actions,))
+
+        self.sm.next_state(self.joint_move, self.next_basestate)
+        self.sm.update_bases(self.next_basestate)
+
+        return tuple(new_last_move)
+
     def finished(self):
         return self.sm.is_terminal()
 
