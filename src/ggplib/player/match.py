@@ -250,8 +250,9 @@ class Match:
 
         if self.forced_move is not None:
             # Use the forced move
+            ls = self.sm.get_legal_state(self.our_role_index)  # Define 'ls' before using it
             legal_moves = [self.legal_to_gamemaster_move(ls.get_legal(ii)) 
-                        for ii in range(self.sm.get_legal_state(self.our_role_index).get_count())]
+                        for ii in range(ls.get_count())]
             if self.forced_move not in legal_moves:
                 msg = "Forced move %s is not in legal moves %s" % (self.forced_move, legal_moves)
                 log.critical(msg)
@@ -262,19 +263,20 @@ class Match:
             self.forced_move = None  # Clear after use
         else:
             # Get the move from the player
+            ls = self.sm.get_legal_state(self.our_role_index)  # Define 'ls' before using it
             legal_choice = self.player.on_next_move(end_time)
             move_to_play = self.legal_to_gamemaster_move(legal_choice)
 
             # Validate the move
             legal_moves = [self.legal_to_gamemaster_move(ls.get_legal(ii)) 
-                        for ii in range(self.sm.get_legal_state(self.our_role_index).get_count())]
+                        for ii in range(ls.get_count())]
             if move_to_play not in legal_moves:
                 msg = "Choice was %s not in legal choices %s" % (move_to_play, legal_moves)
                 log.critical(msg)
                 raise CriticalError(msg)
 
         # Set the joint_move accordingly
-        ls = self.sm.get_legal_state(self.our_role_index)
+        # 'ls' is already defined above
         for idx in range(ls.get_count()):
             if self.sm.legal_to_move(self.our_role_index, ls.get_legal(idx)) == move_to_play:
                 self.joint_move.set(self.our_role_index, ls.get_legal(idx))
