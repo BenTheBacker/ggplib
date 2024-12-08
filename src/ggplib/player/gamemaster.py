@@ -160,7 +160,8 @@ class GameMaster(object):
 
         assert len(actions) == len(self.matches)
         if self.verbose:
-            log.verbose("playing " + actions)
+            pass
+            #log.verbose("playing " + actions)
 
         self.sm.next_state(self.joint_move, self.next_basestate)
         self.sm.update_bases(self.next_basestate)
