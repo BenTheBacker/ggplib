@@ -231,7 +231,8 @@ class Match:
     def do_play(self, move):
         enter_time = time.time()
         if self.verbose:
-            log.debug("do_play: %s" % move)
+            pass
+            #log.debug("do_play: %s" % move)
 
         if move is not None:
             self.apply_move(move)
@@ -239,7 +240,7 @@ class Match:
         current_state = self.get_current_state()
         if self.verbose:
             current_str = self.game_info.model.basestate_to_str(current_state)
-            log.info("Current state : '%s'" % current_str)
+            #log.info("Current state : '%s'" % current_str)
         self.sm.update_bases(current_state)
         if self.sm.is_terminal():
             return "done"
