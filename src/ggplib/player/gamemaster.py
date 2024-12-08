@@ -134,7 +134,7 @@ class GameMaster(object):
         for role_index, (match, role) in enumerate(zip(self.matches, self.sm.get_roles())):
             if self.verbose:
                 log.verbose("===============================================================")
-                log.verbose("do_play("+last_move+") for "+role +" / " +match.player.get_name())
+                #log.verbose("do_play("+last_move+") for "+role +" / " +match.player.get_name())
 
             # Check if a forced move is set for this role
             if role in self.forced_moves:
