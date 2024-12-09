@@ -1,6 +1,6 @@
 # temporary/backup files
 *~
-data/
+#data/
 doc/_build
 
 src/ggplib/props/*

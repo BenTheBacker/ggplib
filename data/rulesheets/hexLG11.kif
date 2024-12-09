@@ -3,10 +3,17 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; components
+
+;; red -> black
+;; blue -> white
+;; pos row/column -> letter/number
+;; black connects to a-k, left to right
+;; white connects to 1-11, bottom to top
+;; swap -> swaps piece coords and colour... that is all
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (role red)
-  (role blue)
+  (role black)
+  (role white)
 
   (<= (base (cell ?m ?n ?role))
       (row ?m)
@@ -28,6 +35,7 @@
   (<= (base (control ?role))
       (role ?role))
 
+  (base canSwap)
 
   (<= (input ?role (place ?m ?n))
       (role ?role)
@@ -37,12 +45,15 @@
   (<= (input ?role noop)
       (role ?role))
 
+  (input white swap)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (init (control red))
+  (init (control black))
   (init (step 1))
+  (init canSwap)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; legal
@@ -52,59 +63,78 @@
       (true (control ?role))
       (row ?m)
       (col ?n)
-      (not (true (cell ?m ?n red)))
-      (not (true (cell ?m ?n blue))))
+      (not (true (cell ?m ?n black)))
+      (not (true (cell ?m ?n white))))
 
-  (<= (legal red noop)
-      (true (control blue)))
+  (<= (legal white swap)
+      (true (control white))
+      (true canSwap))
 
-  (<= (legal blue noop)
-      (true (control red)))
+  (<= (legal black noop)
+      (true (control white)))
+
+  (<= (legal white noop)
+      (true (control black)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; next
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+  (<= (next canSwap)
+      (true canSwap)
+      (does white noop))
+
   (<= (next (cell ?m ?n ?role))
       (does ?role (place ?m ?n)))
 
   (<= (next (cell ?m ?n ?role))
+      (not (does white swap))
       (true (cell ?m ?n ?role)))
 
+  (<= (next (cell ?m ?n white))
+      (does white swap)
+      (true (cell ?x ?y black))
+      (swapaxis ?m ?y)
+      (swapaxis ?x ?n))
 
   (<= (next (step ?n))
       (true (step ?m))
       (succ ?m ?n))
-
 
   (<= (next (owner ?k ?role))
       (true (step ?k))
       (true (control ?role)))
 
   (<= (next (owner ?k ?role))
+      (not (does white swap))
       (true (owner ?k ?role)))
-
 
   (<= (next (connected ?k ?m ?n))
       (does ?role (place ?m ?n))
       (true (step ?k)))
 
   (<= (next (connected ?k ?m ?n))
+      (not (does white swap))
       (transfer ?e)
       (true (connected ?e ?m ?n))
       (true (step ?k)))
 
   (<= (next (connected ?k ?m ?n))
+      (not (does white swap))
       (true (connected ?k ?m ?n))
       (not (transfer ?k)))
 
+  (<= (next (connected 2 ?m ?n))
+      (does white swap)
+      (true (connected 1 ?x ?y))
+      (swapaxis ?m ?y)
+      (swapaxis ?x ?n))
 
-  (<= (next (control red))
-      (true (control blue)))
+  (<= (next (control black))
+      (true (control white)))
 
-  (<= (next (control blue))
-      (true (control red)))
-
+  (<= (next (control white))
+      (true (control black)))
 
   (<= (transfer ?k)
       (does ?role (place ?x ?y))
@@ -116,18 +146,18 @@
 ;;; goal
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (<= (goal red 100) redpath)
-  (<= (goal red 0) (not redpath))
+  (<= (goal black 100) blackpath)
+  (<= (goal black 0) (not blackpath))
 
-  (<= (goal blue 100) bluepath)
-  (<= (goal blue 0) (not bluepath))
+  (<= (goal white 100) whitepath)
+  (<= (goal white 0) (not whitepath))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; terminal
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (<= terminal redpath)
-  (<= terminal bluepath)
+  (<= terminal blackpath)
+  (<= terminal whitepath)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Views
@@ -157,16 +187,15 @@
       (nextrow ?j ?m)
       (nextcol ?n ?k))
 
-
-  (<= redpath
-      (true (connected ?k a ?i))
-      (true (connected ?k i ?j))
-      (true (owner ?k red)))
-
-  (<= bluepath
+  (<= blackpath
       (true (connected ?k ?i 1))
-      (true (connected ?k ?j 9))
-      (true (owner ?k blue)))
+      (true (connected ?k ?j 11))
+      (true (owner ?k black)))
+
+  (<= whitepath
+      (true (connected ?k a ?i))
+      (true (connected ?k k ?j))
+      (true (owner ?k white)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Data
@@ -181,6 +210,8 @@
   (row g)
   (row h)
   (row i)
+  (row j)
+  (row k)
 
   (col 1)
   (col 2)
@@ -191,6 +222,8 @@
   (col 7)
   (col 8)
   (col 9)
+  (col 10)
+  (col 11)
 
   (nextrow a b)
   (nextrow b c)
@@ -200,6 +233,8 @@
   (nextrow f g)
   (nextrow g h)
   (nextrow h i)
+  (nextrow i j)
+  (nextrow j k)
 
   (nextcol 1 2)
   (nextcol 2 3)
@@ -209,6 +244,20 @@
   (nextcol 6 7)
   (nextcol 7 8)
   (nextcol 8 9)
+  (nextcol 9 10)
+  (nextcol 10 11)
+
+  (swapaxis a 1)
+  (swapaxis b 2)
+  (swapaxis c 3)
+  (swapaxis d 4)
+  (swapaxis e 5)
+  (swapaxis f 6)
+  (swapaxis g 7)
+  (swapaxis h 8)
+  (swapaxis i 9)
+  (swapaxis j 10)
+  (swapaxis k 11)
 
   (succ 1 2)
   (succ 2 3)
@@ -291,6 +340,47 @@
   (succ 79 80)
   (succ 80 81)
   (succ 81 82)
+  (succ 82 83)
+  (succ 83 84)
+  (succ 84 85)
+  (succ 85 86)
+  (succ 86 87)
+  (succ 87 88)
+  (succ 88 89)
+  (succ 89 90)
+  (succ 90 91)
+  (succ 91 92)
+  (succ 92 93)
+  (succ 93 94)
+  (succ 94 95)
+  (succ 95 96)
+  (succ 96 97)
+  (succ 97 98)
+  (succ 98 99)
+  (succ 99 100)
+  (succ 100 101)
+  (succ 101 102)
+  (succ 102 103)
+  (succ 103 104)
+  (succ 104 105)
+  (succ 105 106)
+  (succ 106 107)
+  (succ 107 108)
+  (succ 108 109)
+  (succ 109 110)
+  (succ 110 111)
+  (succ 111 112)
+  (succ 112 113)
+  (succ 113 114)
+  (succ 114 115)
+  (succ 115 116)
+  (succ 116 117)
+  (succ 117 118)
+  (succ 118 119)
+  (succ 119 120)
+  (succ 120 121)
+  (succ 121 122)
+  (succ 122 123)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
