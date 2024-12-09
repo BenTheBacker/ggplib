@@ -258,11 +258,11 @@ def get_database(verbose=True):
         except Exception as err:
             log.error("Failed to install draughts: %s" % err)
 
-        try:
-            install_hex(add_game_to_db)
+        # try:
+        #     install_hex(add_game_to_db)
 
-        except Exception as err:
-            log.error("Failed to install hex: %s" % err)
+        # except Exception as err:
+        #     log.error("Failed to install hex: %s" % err)
 
     return the_database
 
