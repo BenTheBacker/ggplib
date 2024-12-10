@@ -591,7 +591,7 @@ def get_index(gdl_str, verbose=False):
     final_value = hash(tuple(hashed_sigs))
 
     # this is a reconstruct phase (testing)
-    log.debug("Reconstructing signature")
-    log.debug("Final value: %s" % final_value)
-    log.debug("Hashed sigs: %s" % sig)
+    print("Reconstructing signature")
+    print("Final value: %s" % final_value)
+    print("Hashed sigs: %s" % sig)
     return final_value, sig
