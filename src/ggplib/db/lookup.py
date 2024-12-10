@@ -24,11 +24,14 @@ class GameInfo(object):
 
     def get_symbol_map(self):
         if self.sigs is None:
+            print("Building symbol map for %s" % self.game)
             idx, self.sigs = signature.get_index(self.gdl_str, verbose=False)
             if self.idx is not None:
                 assert self.idx == idx
             else:
                 self.idx = idx
+
+            print("Symbols for %s" % self.sigs)  
 
             self.symbol_map = signature.build_symbol_map(self.sigs, verbose=False)
 
