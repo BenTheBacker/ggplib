@@ -6,6 +6,7 @@ from ggplib.statemachine import builder
 from ggplib.db import signature
 
 
+
 class GameInfo(object):
     def __init__(self, game, gdl_str):
         self.game = game
@@ -34,6 +35,7 @@ class GameInfo(object):
             print("Symbols for %s" % self.sigs)  
 
             self.symbol_map = signature.build_symbol_map(self.sigs, verbose=False)
+            print("Symbols for %s" % self.symbol_map)  
 
     def lazy_load(self, the_game_store):
         if self.sm is None:
