@@ -7,6 +7,7 @@ from ggplib.util import log
 d = os.path.dirname
 ggplib_local_path = os.path.join(d(d(os.path.abspath(__file__))), "cpp")
 
+print("ggplib_local_path: %s" % ggplib_local_path)
 
 def get_lib():
 
