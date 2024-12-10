@@ -89,6 +89,9 @@ class GameDatabase:
         self.rulesheets_store = root_store.get_directory("rulesheets")
         self.games_store = root_store.get_directory("games", create=True)
 
+        log.info("Rulesheets: %s" % self.rulesheets_store.path)
+        log.info("Games: %s" % self.games_store.path)
+
         self.idx_mapping = {}
         self.game_mapping = {}
 
