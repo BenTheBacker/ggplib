@@ -11,6 +11,8 @@ from collections import OrderedDict
 
 from ggplib.util.symbols import SymbolFactory, Term, ListTerm
 
+from ggplib.util import log
+
 root_constants = "role init base input true next legal terminal does goal".split()
 
 ###############################################################################
@@ -589,4 +591,7 @@ def get_index(gdl_str, verbose=False):
     final_value = hash(tuple(hashed_sigs))
 
     # this is a reconstruct phase (testing)
+    log.debug("Reconstructing signature")
+    log.debug("Final value: %s" % final_value)
+    log.debug("Hashed sigs: %s" % sig)
     return final_value, sig
