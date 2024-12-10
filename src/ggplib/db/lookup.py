@@ -150,6 +150,7 @@ class GameDatabase:
         info = self.game_mapping[name]
 
         if getattr(info, "special_game", False):
+            log.debug("Special game %s" % name)
             return info
 
         # for side effects
