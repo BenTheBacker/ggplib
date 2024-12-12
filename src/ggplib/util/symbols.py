@@ -79,7 +79,7 @@ class SymbolFactory(object):
 
         try:
             instance = clz_pool[args]
-            print("instance found")
+            #print("instance found")
         except KeyError:
             instance = clz_pool[args] = clz(*args)
 
